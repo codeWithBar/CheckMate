@@ -28,3 +28,4 @@ frontend/build/
 backend/node_modules/
 backend/.env
 backend/dist/
+backend/coverage/
