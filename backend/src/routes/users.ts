@@ -1,9 +1,8 @@
 import express from "express";
 import lodash from "lodash";
 import bcrypt from "bcrypt";
-import { User, validateUser } from "../models/User";
-import "dotenv/config";
 import authorize from "../middlewares/authorization";
+import { User, validateUser } from "../models/User";
 
 const router = express.Router();
 
