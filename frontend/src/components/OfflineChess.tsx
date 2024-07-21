@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Chess, ShortMove } from "chess.js";
+import { useState } from "react";
 import { Chessboard } from "react-chessboard";
 
 const boardWrapper = {
@@ -8,7 +8,7 @@ const boardWrapper = {
   margin: "3rem auto",
 };
 
-export default function PlayRandomMoveEngine() {
+const OfflineChess = () => {
   const [game, setGame] = useState(new Chess());
 
   function makeAMove(move: string | ShortMove) {
@@ -16,14 +16,6 @@ export default function PlayRandomMoveEngine() {
     const result = gameCopy.move(move);
     setGame(gameCopy);
     return result; // null if the move was illegal, the move object if the move was legal
-  }
-
-  function makeRandomMove() {
-    const possibleMoves = game.moves();
-    if (game.game_over() || game.in_draw() || possibleMoves.length === 0)
-      return; // exit if the game is over
-    const randomIndex = Math.floor(Math.random() * possibleMoves.length);
-    makeAMove(possibleMoves[randomIndex]);
   }
 
   function onDrop(sourceSquare: any, targetSquare: any) {
@@ -35,7 +27,6 @@ export default function PlayRandomMoveEngine() {
 
     // illegal move
     if (move === null) return false;
-    setTimeout(makeRandomMove, 200);
     return true;
   }
 
@@ -48,4 +39,6 @@ export default function PlayRandomMoveEngine() {
       />
     </div>
   );
-}
+};
+
+export default OfflineChess;
