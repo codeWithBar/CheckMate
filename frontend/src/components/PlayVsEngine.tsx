@@ -99,6 +99,7 @@ const PlayWithEngine = () => {
         style={buttonStyle}
         onClick={() => {
           game.undo();
+          game.undo();
           setGamePosition(game.fen());
         }}
       >

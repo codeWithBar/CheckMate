@@ -8,10 +8,13 @@ const NavBar = () => {
     <HStack justifyContent={"space-between"}>
       <Image src={logo} boxSize={"60px"} />
       <ChakraLink as={ReactRouterLink} to={"/engine"}>
-        EasyEngine!!
+        Play Against Stockfish
       </ChakraLink>
       <ChakraLink as={ReactRouterLink} to={"/offline"}>
         Offline Chess
+      </ChakraLink>
+      <ChakraLink as={ReactRouterLink} to={"/online"}>
+        Online Chess
       </ChakraLink>
       <ColorModeSwitch />
     </HStack>
