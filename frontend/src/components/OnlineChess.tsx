@@ -25,20 +25,32 @@ const socket = io("http://localhost:5001");
 const OnlineChess = () => {
   const game = useMemo(() => new Chess(), []);
   const [gamePosition, setGamePosition] = useState(game.fen());
+  const [isGameStarted, setIsGameStarted] = useState(false);
+  const [boardOrientation, setBoardOrientation] = useState<"white" | "black">(
+    "white"
+  );
 
   useEffect(() => {
     socket.on("connect", () => {
       console.log(`Connected with id: ${socket.id}`);
     });
 
-    socket.on("move", (move) => {
-      game.move(move);
+    socket.on("startGame", ({ room, boardOrientation }) => {
+      setIsGameStarted(true);
+      setBoardOrientation(boardOrientation);
+      console.log(
+        `Game started in room: ${room} with board orientation: ${boardOrientation}`
+      );
+    });
+
+    socket.on("move", (data) => {
+      game.move(data.move);
       setGamePosition(game.fen());
-      console.log(`Move received: ${JSON.stringify(move)}`);
+      console.log(`Move received: ${JSON.stringify(data.move)}`);
     });
 
     return () => {
-      socket.off("connect");
+      socket.off("startGame");
       socket.off("move");
     };
   }, [game]);
@@ -55,7 +67,7 @@ const OnlineChess = () => {
 
     setGamePosition(game.fen());
 
-    socket.emit("move", move);
+    socket.emit("move", { move });
     console.log(`Move sent: ${JSON.stringify(move)}`);
 
     // exit if the game is over
@@ -66,25 +78,37 @@ const OnlineChess = () => {
 
   return (
     <div style={boardWrapper}>
-      <Chessboard position={gamePosition} onPieceDrop={onDrop} />
-      <button
-        style={buttonStyle}
-        onClick={() => {
-          game.reset();
-          setGamePosition(game.fen());
-        }}
-      >
-        New game
-      </button>
-      <button
-        style={buttonStyle}
-        onClick={() => {
-          game.undo();
-          setGamePosition(game.fen());
-        }}
-      >
-        Undo
-      </button>
+      {!isGameStarted ? (
+        <div>
+          <h2>Waiting for another player to join...</h2>
+        </div>
+      ) : (
+        <div>
+          <Chessboard
+            position={gamePosition}
+            onPieceDrop={onDrop}
+            boardOrientation={`${boardOrientation}`}
+          />
+          <button
+            style={buttonStyle}
+            onClick={() => {
+              game.reset();
+              setGamePosition(game.fen());
+            }}
+          >
+            New game
+          </button>
+          <button
+            style={buttonStyle}
+            onClick={() => {
+              game.undo();
+              setGamePosition(game.fen());
+            }}
+          >
+            Undo
+          </button>
+        </div>
+      )}
     </div>
   );
 };
