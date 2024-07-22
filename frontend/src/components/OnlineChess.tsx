@@ -2,7 +2,7 @@ import { Chess, Square } from "chess.js";
 import { useMemo, useState, useEffect } from "react";
 import { Chessboard } from "react-chessboard";
 import { Piece } from "react-chessboard/dist/chessboard/types";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 
 const boardWrapper = {
   width: `70vw`,
@@ -20,38 +20,48 @@ const buttonStyle = {
   boxShadow: "0 2px 5px rgba(0, 0, 0, 0.5)",
 };
 
-const socket = io("http://localhost:5001");
-
 const OnlineChess = () => {
-  const game = useMemo(() => new Chess(), []);
+  const [game, setGame] = useState(() => new Chess());
   const [gamePosition, setGamePosition] = useState(game.fen());
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">(
     "white"
   );
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log(`Connected with id: ${socket.id}`);
+    const newSocket = io("http://localhost:5001");
+    setSocket(newSocket);
+
+    newSocket.on("connect", () => {
+      console.log(`Connected with id: ${newSocket.id}`);
     });
 
-    socket.on("startGame", ({ room, boardOrientation }) => {
-      setIsGameStarted(true);
-      setBoardOrientation(boardOrientation);
-      console.log(
-        `Game started in room: ${room} with board orientation: ${boardOrientation}`
-      );
-    });
+    newSocket.on(
+      "startGame",
+      ({
+        room,
+        boardOrientation,
+      }: {
+        room: string;
+        boardOrientation: "white" | "black";
+      }) => {
+        setIsGameStarted(true);
+        setBoardOrientation(boardOrientation);
+        console.log(
+          `Game started in room: ${room} with board orientation: ${boardOrientation}`
+        );
+      }
+    );
 
-    socket.on("move", (data) => {
+    newSocket.on("move", (data) => {
       game.move(data.move);
       setGamePosition(game.fen());
       console.log(`Move received: ${JSON.stringify(data.move)}`);
     });
 
     return () => {
-      socket.off("startGame");
-      socket.off("move");
+      newSocket.disconnect();
     };
   }, [game]);
 
@@ -67,8 +77,10 @@ const OnlineChess = () => {
 
     setGamePosition(game.fen());
 
-    socket.emit("move", { move });
-    console.log(`Move sent: ${JSON.stringify(move)}`);
+    if (socket) {
+      socket.emit("move", { move });
+      console.log(`Move sent: ${JSON.stringify(move)}`);
+    }
 
     // exit if the game is over
     if (game.isGameOver() || game.isDraw()) return false;
@@ -87,7 +99,7 @@ const OnlineChess = () => {
           <Chessboard
             position={gamePosition}
             onPieceDrop={onDrop}
-            boardOrientation={`${boardOrientation}`}
+            boardOrientation={boardOrientation}
           />
           <button
             style={buttonStyle}
