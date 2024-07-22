@@ -7,7 +7,7 @@ const NavBar = () => {
   return (
     <HStack justifyContent={"space-between"}>
       <Image src={logo} boxSize={"60px"} />
-      <ChakraLink as={ReactRouterLink} to={"/easyengine"}>
+      <ChakraLink as={ReactRouterLink} to={"/engine"}>
         EasyEngine!!
       </ChakraLink>
       <ChakraLink as={ReactRouterLink} to={"/offline"}>

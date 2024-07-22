@@ -1,6 +1,7 @@
 import { Chess, Square } from "chess.js";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Chessboard } from "react-chessboard";
+import Engine from "../engine";
 import { Piece } from "react-chessboard/dist/chessboard/types";
 
 const boardWrapper = {
@@ -19,9 +20,40 @@ const buttonStyle = {
   boxShadow: "0 2px 5px rgba(0, 0, 0, 0.5)",
 };
 
-const Offline = () => {
+const PlayWithEngine = () => {
+  useEffect(() => {
+    const stockfish = new Worker("./stockfish.wasm.js");
+    const DEPTH = 8; // number of halfmoves the engine looks ahead
+    const FEN_POSITION =
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    stockfish.postMessage("uci");
+    stockfish.postMessage(`position fen ${FEN_POSITION}`);
+    stockfish.postMessage(`go depth ${DEPTH}`);
+
+    stockfish.onmessage = (e) => {
+      console.log(e.data); // in the console output you will see `bestmove e2e4` message
+    };
+  }, []);
+
+  const engine = useMemo(() => new Engine(), []);
   const game = useMemo(() => new Chess(), []);
+
   const [gamePosition, setGamePosition] = useState(game.fen());
+  const [stockfishLevel, setStockfishLevel] = useState(18);
+
+  function findBestMove() {
+    engine.evaluatePosition(game.fen(), stockfishLevel);
+
+    engine.onMessage(({ bestMove }) => {
+      if (bestMove) {
+        // In latest chess.js versions you can just write ```game.move(bestMove)```
+        game.move(bestMove);
+
+        setGamePosition(game.fen());
+      }
+    });
+  }
 
   function onDrop(sourceSquare: Square, targetSquare: Square, piece: Piece) {
     const move = game.move({
@@ -36,6 +68,8 @@ const Offline = () => {
 
     // exit if the game is over
     if (game.isGameOver() || game.isDraw()) return false;
+
+    findBestMove();
 
     return true;
   }
@@ -74,4 +108,4 @@ const Offline = () => {
   );
 };
 
-export default Offline;
+export default PlayWithEngine;
