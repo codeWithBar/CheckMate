@@ -7,8 +7,5 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Barlas Söker",
-  "license": "MIT",
-  "dependencies": {
-    "socket.io": "^4.7.5"
-  }
+  "license": "MIT"
 }

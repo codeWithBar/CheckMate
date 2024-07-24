@@ -1,8 +1,9 @@
 import { Chess, Square } from "chess.js";
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Chessboard } from "react-chessboard";
 import { Piece } from "react-chessboard/dist/chessboard/types";
 import io, { Socket } from "socket.io-client";
+import { HStack, Spinner } from "@chakra-ui/react";
 
 const boardWrapper = {
   width: `70vw`,
@@ -30,7 +31,9 @@ const OnlineChess = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:5001");
+    const newSocket = io("http://localhost:5001", {
+      transports: ["websocket", "polling"],
+    });
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
@@ -48,9 +51,7 @@ const OnlineChess = () => {
       }) => {
         setIsGameStarted(true);
         setBoardOrientation(boardOrientation);
-        console.log(
-          `Game started in room: ${room} with board orientation: ${boardOrientation}`
-        );
+        console.log(`Game started in room: ${room}`);
       }
     );
 
@@ -91,15 +92,17 @@ const OnlineChess = () => {
   return (
     <div style={boardWrapper}>
       {!isGameStarted ? (
-        <div>
+        <HStack>
           <h2>Waiting for another player to join...</h2>
-        </div>
+          <Spinner />
+        </HStack>
       ) : (
         <div>
           <Chessboard
             position={gamePosition}
             onPieceDrop={onDrop}
-            boardOrientation={boardOrientation}
+            boardOrientation={"white"}
+            showPromotionDialog={true}
           />
           <button
             style={buttonStyle}

@@ -50,7 +50,11 @@ const Offline = () => {
         }}
       ></div>
 
-      <Chessboard position={gamePosition} onPieceDrop={onDrop} />
+      <Chessboard
+        position={gamePosition}
+        onPieceDrop={onDrop}
+        showPromotionDialog={true}
+      />
 
       <button
         style={buttonStyle}
